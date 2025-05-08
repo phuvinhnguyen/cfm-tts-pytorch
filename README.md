@@ -12,7 +12,7 @@ A PyTorch implementation of Continuous Flow Matching for Text-to-Speech synthesi
 ## Installation
 
 ```bash
-pip install -r requirements.txt
+pip install https://github.com/phuvinhnguyen/cfm-tts-pytorch.git
 ```
 
 ## Usage

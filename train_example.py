@@ -1,9 +1,9 @@
 import torch
-from e2_tts_pytorch import E2TTS, DurationPredictor
+from cfm_tts_pytorch import E2TTS, DurationPredictor
 
 from datasets import load_dataset
 
-from e2_tts_pytorch.trainer import (
+from cfm_tts_pytorch.trainer import (
     HFDataset,
     E2Trainer
 )

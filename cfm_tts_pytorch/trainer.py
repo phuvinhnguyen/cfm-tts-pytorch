@@ -26,7 +26,7 @@ from ema_pytorch import EMA
 
 from loguru import logger
 
-from e2_tts_pytorch.e2_tts import (
+from cfm_tts_pytorch.e2_tts import (
     E2TTS,
     DurationPredictor,
     MelSpec
