@@ -260,7 +260,7 @@ class E2Trainer:
                     if self.need_velocity_consistent_loss and self.ema_model.initted:
                         velocity_consistency_model = self.accelerator.unwrap_model(self.ema_model).ema_model
 
-                    loss, cond, pred, pred_data = self.model(
+                    loss, cond, pred, pred_data, loss_breakdown = self.model(
                         mel_spec,
                         text=text_inputs,
                         lens=mel_lengths,

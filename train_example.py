@@ -2,6 +2,7 @@ import torch
 from cfm_tts_pytorch import E2TTS, DurationPredictor
 
 from datasets import load_dataset
+from hl_gauss_pytorch import HLGaussLoss
 
 from cfm_tts_pytorch.trainer import (
     HFDataset,
@@ -12,7 +13,8 @@ duration_predictor = DurationPredictor(
     transformer = dict(
         dim = 512,
         depth = 6,
-    )
+    ),
+    hl_gauss_loss=HLGaussLoss(0,1,10)
 )
 
 e2tts = E2TTS(

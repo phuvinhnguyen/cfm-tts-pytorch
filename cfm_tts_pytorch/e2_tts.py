@@ -47,7 +47,7 @@ from x_transformers.x_transformers import RotaryEmbedding
 
 from hyper_connections import HyperConnections
 
-from hl_gauss_pytorch import HLGaussLayer
+from hl_gauss_pytorch import HLGaussLayer, HLGaussLoss
 
 from vocos import Vocos
 
