@@ -1,3 +1,4 @@
+import argparse
 from datasets import load_dataset
 from torch import cosine_similarity
 import whisper
@@ -9,7 +10,17 @@ from cfm_tts_pytorch.trainer import HFDataset, collate_fn
 from pathlib import Path
 from cfm_tts_pytorch import E2TTS
 
+# -------------------------
+# Argument Parser
+# -------------------------
+parser = argparse.ArgumentParser()
+parser.add_argument('--model_path', type=str, required=True, help='Path to E2TTS checkpoint (e.g., e2tts.pt)')
+parser.add_argument('--save_path', type=str, default='./MushanWGLOBEEval', help='Path to save outputs')
+args = parser.parse_args()
 
+# -------------------------
+# Model Setup
+# -------------------------
 e2tts = E2TTS(
     cond_drop_prob = 0.25,
     transformer = dict(
@@ -27,7 +38,7 @@ e2tts = E2TTS(
     )
 )
 
-checkpoint = torch.load('e2tts.pt', map_location='cpu')
+checkpoint = torch.load(args.model_path, map_location='cpu')
 if 'model_state_dict' in checkpoint:
     e2tts.load_state_dict(checkpoint['model_state_dict'])
 else:
