@@ -16,9 +16,7 @@ e2tts = E2TTS(
         dim = 1024,
         depth = 24,
         heads = 16,
-        ff_mult=4,
-        text_mask_padding=False,
-        pe_attn_head=1
+        ff_mult=4
     ),
     mel_spec_kwargs = dict(
         filter_length = 1024,
