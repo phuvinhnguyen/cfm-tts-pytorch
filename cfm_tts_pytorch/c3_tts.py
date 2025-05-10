@@ -70,7 +70,7 @@ Bool  = TorchTyping(jaxtyping.Bool)
 
 LossBreakdown = namedtuple('LossBreakdown', ['flow', 'velocity_consistency'])
 
-E2TTSReturn = namedtuple('E2TTS', ['loss', 'cond', 'pred_flow', 'pred_data', 'loss_breakdown'])
+C3TTSReturn = namedtuple('C3TTS', ['loss', 'cond', 'pred_flow', 'pred_data', 'loss_breakdown'])
 
 # helpers
 
@@ -516,7 +516,7 @@ class TextAudioCrossCondition(Module):
         return audio + text_cond, text + audio_cond
 
 # attention and transformer backbone
-# for use in both e2tts as well as duration module
+# for use in both C3TTS as well as duration module
 
 class Transformer(Module):
     @beartype
@@ -1115,7 +1115,7 @@ class DurationPredictor(Module):
 
         return loss
 
-class E2TTS(Module):
+class C3TTS(Module):
 
     @beartype
     def __init__(
@@ -1307,7 +1307,7 @@ class E2TTS(Module):
         self,
         *args,
         cfg_strength: float = 1.,
-        cfg_null_model: 'E2TTS' | None = None,
+        cfg_null_model: 'C3TTS' | None = None,
         remove_parallel_component: bool = True,
         keep_parallel_frac: float = 0.,
         **kwargs,
@@ -1342,7 +1342,7 @@ class E2TTS(Module):
         duration: int | torch.Tensor | None = None, # int | torch.Tensor | None
         steps = 32,
         cfg_strength = 1.,                      # they used a classifier free guidance strength of 1.
-        cfg_null_model: 'E2TTS' | None = None,    # for "autoguidance" from Karras et al. https://arxiv.org/abs/2406.02507
+        cfg_null_model: 'C3TTS' | None = None,    # for "autoguidance" from Karras et al. https://arxiv.org/abs/2406.02507
         max_duration = 4096,                    # in case the duration predictor goes haywire
         vocoder: Callable[[torch.Tensor], list[torch.Tensor]] | None = None, # Callable[[Float['b d n']], list[Float['_']]] | None
         return_raw_output: bool | None = None, # bool | None
@@ -1398,28 +1398,19 @@ class E2TTS(Module):
 
         # neural ode
 
-        def fn(t, x):
-            # at each step, conditioning is fixed
+        step_cond = torch.where(cond_mask, cond, torch.zeros_like(cond))
 
-            step_cond = torch.where(cond_mask, cond, torch.zeros_like(cond))
+        # predict flow
 
-            # predict flow
-
-            return self.cfg_transformer_with_pred_head(
-                x,
-                step_cond,
-                times = t,
-                text = text,
-                mask = mask,
-                cfg_strength = cfg_strength,
-                cfg_null_model = cfg_null_model
-            )
-
-        y0 = torch.randn_like(cond)
-        t = torch.linspace(0, 1, steps, device = self.device)
-
-        trajectory = odeint(fn, y0, t, **self.odeint_kwargs)
-        sampled = trajectory[-1]
+        sampled = self.cfg_transformer_with_pred_head(
+            torch.randn_like(cond, device=cond.device),
+            step_cond,
+            times = torch.tensor(0.5, device=cond.device),
+            text = text,
+            mask = mask,
+            cfg_strength = cfg_strength,
+            cfg_null_model = cfg_null_model
+        )
 
         out = sampled
 
@@ -1472,7 +1463,7 @@ class E2TTS(Module):
         text: torch.Tensor | list[str] | None = None, # Int['b nt'] | list[str] | None
         times: torch.Tensor | None = None, # Float['b'] | Float[''] | None
         lens: torch.Tensor | None = None, # Int['b'] | None
-        velocity_consistency_model: 'E2TTS' | None = None, # 'E2TTS' | None
+        velocity_consistency_model: 'C3TTS' | None = None, # 'C3TTS' | None
         velocity_consistency_delta = 1e-5 # float
     ):
         need_velocity_loss = exists(velocity_consistency_model) and self.velocity_consistency_weight > 0.
@@ -1592,4 +1583,4 @@ class E2TTS(Module):
 
         # return total loss and bunch of intermediates
 
-        return E2TTSReturn(total_loss, cond, pred, x0 + pred, breakdown)
+        return C3TTSReturn(total_loss, cond, pred, x0 + pred, breakdown)
