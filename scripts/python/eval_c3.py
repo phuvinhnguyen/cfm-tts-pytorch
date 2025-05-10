@@ -39,7 +39,10 @@ e2tts = C3TTS(
 )
 
 checkpoint = torch.load(args.model_path, map_location='cpu')
-e2tts.load_state_dict(checkpoint['model_state_dict'])
+if 'model_state_dict' in checkpoint:
+    e2tts.load_state_dict(checkpoint['model_state_dict'])
+else:
+    e2tts.load_state_dict(checkpoint['ema_model_state_dict'])
 
 # -------------------------
 # Setup Paths and Data
